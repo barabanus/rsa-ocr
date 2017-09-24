@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Read RSA token from image - proof of concept</title>
+
+        <style>
+            body {
+                font-size: 16pt;
+                line-height: 150%;
+                margin: 15px 30px 0 30px;
+                padding: 0;
+                background-color: white;
+                color: #262626;
+            }
+
+            h1 {
+                border-bottom: 2px solid #262626;
+                padding-bottom: 10px;
+            }
+
+            input {
+                font-size: 12pt;
+            }
+
+            @font-face{
+             font-family: "LCD";
+             src: url("/data/digital-7.mono.ttf")
+            }
+
+            .result {
+                font-family: LCD;
+                font-size: 64pt;
+            }
+
+            .error {
+                color: red;
+            }
+
+        </style>
+    </head>
+
+    <body>
+        <h1>Read RSA SecurID token from image - proof of concept</h1>
+
+        <form id="form" action="/ocr" method="post" enctype="multipart/form-data">
+            <table border="0">
+                <tr valign="middle">
+                    <td>1. Select image to recognize:</td>
+                    <td><input id="file" type="file" name="image" accept="image/jpeg, image/png"/></td>
+                    <td id="status" rowspan="2"/>
+                </tr>
+
+                <tr valign="middle">
+                    <td>2. Read digits from the image</td>
+                    <td><input type="submit" value="Submit"/></td>
+                </tr>
+            </table>
+        </form>
+
+        <p><img id="image"/>
+
+        <script>
+            var g_status = document.getElementById("status")
+            var g_image = false
+
+            document.getElementById("file").value = ""
+
+            document.getElementById("file").onchange = function () {
+                g_status.innerHTML = " "
+                var reader = new FileReader()
+
+                reader.onload = function (e) {
+                    // get loaded data and render image
+                    document.getElementById("image").src = e.target.result
+                    g_image = true
+                }
+
+                // read the image file as a data URL
+                reader.readAsDataURL(this.files[0])
+            }
+
+            document.getElementById("form").onsubmit = function() {
+                if (!g_image) {
+                    g_status.className = "error"
+                    g_status.innerHTML = "Please select image to submit"
+                    return false
+                }
+
+                var xmlhttp = new XMLHttpRequest()
+
+                xmlhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var obj = JSON.parse(this.responseText)
+                        if (obj.success) {
+                            g_status.className = "result"
+                            g_status.innerHTML = obj.result
+                        } else {
+                            g_status.className = "error"
+                            g_status.innerHTML = "Failed to read the number"
+                        }
+                    }
+                }
+
+                var form = document.getElementById("form")
+                xmlhttp.open(form.method, form.action, true)
+                xmlhttp.send(new FormData(form))
+
+                return false
+            }
+        </script>
+    </body>
+</html>

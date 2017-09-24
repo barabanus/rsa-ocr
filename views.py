@@ -17,8 +17,8 @@ def ocr_view(request):
 
     try:
         number = readDigits(request.POST["image"].file)
-        return {"success": True, "result": number}
+        return { "success": True, "result": number }
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        return { "success": False, "message": str(e) }
 
 ####################################################################################################
